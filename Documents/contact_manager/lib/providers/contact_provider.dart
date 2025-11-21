@@ -1,13 +1,27 @@
-import 'package:flutter/material.dart';
-import '../models/contact_model.dart';
-import '../services/database_helper.dart';
+import 'package:flutter/foundation.dart';
+import '../models/contact.dart';
+import '../services/contact_service.dart';
 
 class ContactProvider with ChangeNotifier {
+  final ContactService _contactService = ContactService();
   List<Contact> _contacts = [];
   bool _isLoading = false;
+  String? _searchQuery;
 
   List<Contact> get contacts => _contacts;
   bool get isLoading => _isLoading;
+  String? get searchQuery => _searchQuery;
+
+  List<Contact> get filteredContacts {
+    if (_searchQuery == null || _searchQuery!.isEmpty) {
+      return _contacts;
+    }
+    return _contacts.where((contact) {
+      return contact.fullName.toLowerCase().contains(_searchQuery!.toLowerCase()) ||
+          contact.phoneNumber.contains(_searchQuery!) ||
+          (contact.email?.toLowerCase().contains(_searchQuery!.toLowerCase()) ?? false);
+    }).toList();
+  }
 
   ContactProvider() {
     loadContacts();
@@ -17,51 +31,70 @@ class ContactProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    try {
-      _contacts = await DatabaseHelper().getContacts();
-    } catch (error) {
-      debugPrint('Error loading contacts: $error');
+    _contacts = await _contactService.getContacts();
+    
+    // Si pas de contacts, ajouter des exemples
+    if (_contacts.isEmpty) {
+      await _addSampleContacts();
+      _contacts = await _contactService.getContacts();
+    }
 
-      _contacts = [
-        Contact(id: 1, name: 'Farah', phone: '12345678', email: 'farah@email.com'),
-        Contact(id: 2, name: 'Ahmed', phone: '87654321', email: 'ahmed@email.com'),
-      ];
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> _addSampleContacts() async {
+    final sampleContacts = [
+      Contact(
+        firstName: 'Farah',
+        lastName: 'Ben Hamida',
+        phoneNumber: '12345678',
+        email: 'farah@email.com',
+        address: 'Tunis, Tunisia',
+      ),
+      Contact(
+        firstName: 'Ahmed',
+        lastName: 'Smith',
+        phoneNumber: '87654321',
+        email: 'ahmed@email.com',
+        address: 'Sfax, Tunisia',
+      ),
+      Contact(
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        phoneNumber: '55555555',
+        email: 'sarah@email.com',
+        address: 'Sousse, Tunisia',
+      ),
+    ];
+
+    for (final contact in sampleContacts) {
+      await _contactService.addContact(contact);
     }
   }
 
   Future<void> addContact(Contact contact) async {
-    try {
-      await DatabaseHelper().insertContact(contact);
-      await loadContacts();
-    } catch (error) {
-      debugPrint('Error adding contact: $error');
-      final newContact = contact.copyWith(id: _contacts.length + 1);
-      _contacts.add(newContact);
-      notifyListeners();
-    }
+    await _contactService.addContact(contact);
+    await loadContacts();
   }
 
   Future<void> updateContact(Contact contact) async {
-    try {
-      await DatabaseHelper().updateContact(contact);
-      await loadContacts();
-    } catch (error) {
-      debugPrint('Error updating contact: $error');
-      rethrow;
-    }
+    await _contactService.updateContact(contact);
+    await loadContacts();
   }
 
   Future<void> deleteContact(int id) async {
-    try {
-      await DatabaseHelper().deleteContact(id);
-      _contacts.removeWhere((contact) => contact.id == id);
-      notifyListeners();
-    } catch (error) {
-      debugPrint('Error deleting contact: $error');
-      rethrow;
-    }
+    await _contactService.deleteContact(id);
+    await loadContacts();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void clearSearch() {
+    _searchQuery = null;
+    notifyListeners();
   }
 }

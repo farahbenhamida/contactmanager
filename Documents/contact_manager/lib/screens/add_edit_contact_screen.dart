@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/contact.dart';
 import '../providers/contact_provider.dart';
-import '../models/contact_model.dart';
 
 class AddEditContactScreen extends StatefulWidget {
   final Contact? contact;
 
-  const AddEditContactScreen({super.key, this.contact});
+  const AddEditContactScreen({Key? key, this.contact}) : super(key: key);
 
   @override
-  State<AddEditContactScreen> createState() => _AddEditContactScreenState();
+  _AddEditContactScreenState createState() => _AddEditContactScreenState();
 }
 
 class _AddEditContactScreenState extends State<AddEditContactScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-
-  bool _isSaving = false;
+  final _addressController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     if (widget.contact != null) {
-      _nameController.text = widget.contact!.name;
-      _phoneController.text = widget.contact!.phone;
+      _firstNameController.text = widget.contact!.firstName;
+      _lastNameController.text = widget.contact!.lastName;
+      _phoneController.text = widget.contact!.phoneNumber;
       _emailController.text = widget.contact!.email ?? '';
+      _addressController.text = widget.contact!.address ?? '';
     }
   }
 
@@ -34,80 +36,116 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contact == null ? 'Add Contact' : 'Edit Contact'),
-        actions: [
-          if (_isSaving)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-        ],
+        title: Text(widget.contact == null ? 'Ajouter Contact' : 'Modifier Contact'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
+              // Prénom
               TextFormField(
-                controller: _nameController,
+                controller: _firstNameController,
                 decoration: const InputDecoration(
-                  labelText: 'Name *',
+                  labelText: 'Prénom *',
                   prefixIcon: Icon(Icons.person),
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                    return 'Veuillez entrer le prénom';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+              // Nom
+              TextFormField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom *',
+                  prefixIcon: Icon(Icons.person_outline),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer le nom';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              // Téléphone
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(
-                  labelText: 'Phone Number *',
+                  labelText: 'Téléphone *',
                   prefixIcon: Icon(Icons.phone),
+                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a phone number';
+                    return 'Veuillez entrer le téléphone';
                   }
                   if (value.length < 8) {
-                    return 'Please enter a valid phone number';
+                    return 'Le numéro doit contenir au moins 8 chiffres';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+              // Email
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Email (Optional)',
+                  labelText: 'Email',
                   prefixIcon: Icon(Icons.email),
+                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value != null && value.isNotEmpty && !value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return 'Email invalide';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              // Adresse
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Adresse',
+                  prefixIcon: Icon(Icons.location_on),
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+                keyboardType: TextInputType.streetAddress,
+              ),
+              const SizedBox(height: 30),
+              // Bouton de sauvegarde
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveContact,
+                  onPressed: _saveContact,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   child: Text(
-                    widget.contact == null ? 'Add Contact' : 'Update Contact',
-                    style: const TextStyle(fontSize: 16),
+                    widget.contact == null ? 'Ajouter le contact' : 'Modifier le contact',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -118,70 +156,36 @@ class _AddEditContactScreenState extends State<AddEditContactScreen> {
     );
   }
 
-  Future<void> _saveContact() async {
+  void _saveContact() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isSaving = true;
-      });
+      final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+      
+      final contact = Contact(
+        id: widget.contact?.id,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+      );
 
-      try {
-        final contact = Contact(
-          id: widget.contact?.id,
-          name: _nameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        );
-
-        if (widget.contact == null) {
-          await context.read<ContactProvider>().addContact(contact);
-          _showSuccessMessage('Contact added successfully');
-        } else {
-          await context.read<ContactProvider>().updateContact(contact);
-          _showSuccessMessage('Contact updated successfully');
-        }
-
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      } catch (error) {
-        if (mounted) {
-          _showErrorMessage('Failed to save contact: $error');
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSaving = false;
-          });
-        }
+      if (widget.contact == null) {
+        contactProvider.addContact(contact);
+      } else {
+        contactProvider.updateContact(contact);
       }
+
+      Navigator.pop(context);
     }
-  }
-
-  void _showSuccessMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 }
