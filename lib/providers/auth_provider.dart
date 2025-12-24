@@ -16,7 +16,7 @@ class AuthProvider extends ChangeNotifier {
     _currentUserName = prefs.getString('currentUserName');
     notifyListeners();
   }
-  Future<bool> signup(String name, String email, String password) async {
+  Future<bool> register(String name, String email, String password) async {
     try {
       final data = await _apiService.register(name, email, password);
       await _setSession(data);

@@ -6,7 +6,7 @@ import '../providers/contact_provider.dart';
 class AddEditContactScreen extends StatefulWidget {
   final Contact? contact;
 
-  const AddEditContactScreen({Key? key, this.contact}) : super(key: key);
+  const AddEditContactScreen({super.key, this.contact});
 
   @override
   _AddEditContactScreenState createState() => _AddEditContactScreenState();

@@ -1,0 +1,2 @@
+$flutterPath = "C:\Users\Farah Ben Hamida\flutter_windows_3.35.6-stable\flutter\bin\flutter.bat"
+& $flutterPath emulators --launch "contact manager emulator"

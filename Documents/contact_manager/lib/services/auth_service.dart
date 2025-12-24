@@ -74,7 +74,7 @@ class AuthService {
 String jsonEncode(Map<String, dynamic> map) {
   final buffer = StringBuffer();
   buffer.write('{');
-  map.entries.forEach((entry) {
+  for (var entry in map.entries) {
     buffer.write('"${entry.key}":');
     if (entry.value is String) {
       buffer.write('"${entry.value}"');
@@ -82,7 +82,7 @@ String jsonEncode(Map<String, dynamic> map) {
       buffer.write(entry.value);
     }
     buffer.write(',');
-  });
+  }
   buffer.write('}');
   return buffer.toString().replaceAll(',}', '}');
 }

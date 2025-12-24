@@ -5,7 +5,7 @@ import '../models/user.dart';  // IMPORT AJOUTÉ
 import 'login_screen.dart';
 
 class ContactListScreen extends StatelessWidget {
-  const ContactListScreen({Key? key}) : super(key: key);
+  const ContactListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

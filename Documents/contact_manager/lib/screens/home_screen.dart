@@ -8,7 +8,7 @@ import 'contact_detail_screen.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +114,7 @@ class HomeScreen extends StatelessWidget {
 class ContactCard extends StatelessWidget {
   final Contact contact;
 
-  const ContactCard({Key? key, required this.contact}) : super(key: key);
+  const ContactCard({super.key, required this.contact});
 
   @override
   Widget build(BuildContext context) {

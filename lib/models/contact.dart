@@ -33,6 +33,10 @@ class Contact {
     );
   }
 
+  factory Contact.fromJson(Map<String, dynamic> json) => Contact.fromMap(json);
+
+  Map<String, dynamic> toJson() => toMap();
+
   Contact copyWith({
     int? id,
     String? name,

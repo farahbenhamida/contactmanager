@@ -5,7 +5,7 @@ import '../models/contact.dart';
 class ContactDetailScreen extends StatelessWidget {
   final Contact contact;
 
-  const ContactDetailScreen({Key? key, required this.contact}) : super(key: key);
+  const ContactDetailScreen({super.key, required this.contact});
 
   @override
   Widget build(BuildContext context) {
