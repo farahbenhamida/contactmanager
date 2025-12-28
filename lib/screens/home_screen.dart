@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/contact_provider.dart';
 import '../providers/auth_provider.dart';
 import 'add_edit_contact_screen.dart';
@@ -19,6 +20,33 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load contacts without userId since your provider doesn't use it
     Future.microtask(() =>
         Provider.of<ContactProvider>(context, listen: false).loadContacts());
+  }
+
+  Future<void> _launchWhatsApp(String phone) async {
+    // Remove all non-numeric characters to get clean number
+    // You might need to add country code if not present in the phone number
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    
+    // Create WhatsApp URL
+    final url = Uri.parse("https://wa.me/$cleanPhone");
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch WhatsApp')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error launching WhatsApp: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -84,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     radius: 24,
                     backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     child: Text(
-                      contact.name[0].toUpperCase(),
+                      contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
                       style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold,
@@ -119,26 +147,36 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ],
                   ),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.message, color: Colors.green),
+                        tooltip: 'Message on WhatsApp',
+                        onPressed: () => _launchWhatsApp(contact.phone),
+                      ),
+                      PopupMenuButton(
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                        ],
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AddEditContactScreen(contact: contact),
+                              ),
+                            );
+                          } else if (value == 'delete') {
+                            // Fixed: Only pass contact.id (not userId)
+                            if (contact.id != null) {
+                              provider.deleteContact(contact.id!);
+                            }
+                          }
+                        },
+                      ),
                     ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddEditContactScreen(contact: contact),
-                          ),
-                        );
-                      } else if (value == 'delete') {
-                        // Fixed: Only pass contact.id (not userId)
-                        if (contact.id != null) {
-                          provider.deleteContact(contact.id!);
-                        }
-                      }
-                    },
                   ),
                 ),
               );

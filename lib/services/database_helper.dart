@@ -20,8 +20,15 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'contacts.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createTables,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // Simple migration for dev: drop and recreate
+          await db.execute('DROP TABLE IF EXISTS contacts');
+          await _createTables(db, newVersion);
+        }
+      },
     );
   }
 
