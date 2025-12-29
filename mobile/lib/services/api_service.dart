@@ -22,7 +22,7 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: json.encode(person.toJson()),
     );
-    
+
     if (response.statusCode == 200) {
       return 'Personne ajoutée avec succès';
     } else {
@@ -35,7 +35,7 @@ class ApiService {
     final response = await http.delete(
       Uri.parse('$baseUrl/personnes/$id'),
     );
-    
+
     if (response.statusCode == 200) {
       return 'Personne supprimée avec succès';
     } else {

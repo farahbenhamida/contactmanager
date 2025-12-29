@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/person.dart';
 import '../services/api_service.dart';
 import 'add_person_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -32,6 +31,29 @@ class _HomeScreenState extends State<HomeScreen> {
         isLoading = false;
       });
       _showErrorDialog(e.toString());
+    }
+  }
+
+  Future<void> _launchWhatsApp(String phone) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    final url = Uri.parse("https://wa.me/$cleanPhone");
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch WhatsApp')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error launching WhatsApp: $e')),
+        );
+      }
     }
   }
 
@@ -68,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (context) => AddPersonScreen()),
     );
-    
     if (result == true) {
       _loadPersons();
     }
@@ -109,15 +130,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: Text('Confirmer la suppression'),
-                              content: Text('Êtes-vous sûr de vouloir supprimer ${person.prenom} ${person.nom} ?'),
+                              content: Text(
+                                  'Êtes-vous sûr de vouloir supprimer ${person.prenom} ${person.nom} ?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(false),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
                                   child: Text('Annuler'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.of(context).pop(true),
-                                  child: Text('Supprimer', style: TextStyle(color: Colors.red)),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: Text('Supprimer',
+                                      style: TextStyle(color: Colors.red)),
                                 ),
                               ],
                             );
@@ -128,16 +153,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         _deletePerson(person.id!);
                       },
                       child: Card(
-                        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        margin:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                         child: ListTile(
                           title: Text('${person.prenom} ${person.nom}'),
                           subtitle: Text(person.telephone),
                           leading: CircleAvatar(
-                            child: Text(
-                              person.prenom.isNotEmpty 
-                                ? person.prenom[0].toUpperCase() 
-                                : '?'
-                            ),
+                            child: Text(person.prenom.isNotEmpty
+                                ? person.prenom[0].toUpperCase()
+                                : '?'),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.message, color: Colors.green),
+                            onPressed: () => _launchWhatsApp(person.telephone),
                           ),
                         ),
                       ),
@@ -146,8 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddPerson,
-        backgroundColor: Colors.blue,
         child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
       ),
     );
   }

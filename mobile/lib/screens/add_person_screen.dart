@@ -3,8 +3,6 @@ import '../models/person.dart';
 import '../services/api_service.dart';
 
 class AddPersonScreen extends StatefulWidget {
-  const AddPersonScreen({super.key});
-
   @override
   _AddPersonScreenState createState() => _AddPersonScreenState();
 }
@@ -20,22 +18,17 @@ class _AddPersonScreenState extends State<AddPersonScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() {
       _isLoading = true;
     });
-
     try {
       final person = Person(
         nom: _nomController.text,
         prenom: _prenomController.text,
         telephone: _telephoneController.text,
       );
-
       await ApiService.addPerson(person);
-      
       Navigator.pop(context, true);
-      
     } catch (e) {
       setState(() {
         _isLoading = false;
