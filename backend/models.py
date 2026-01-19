@@ -10,6 +10,7 @@ class Person(Base):
     prenom = Column(String, index=True)
     telephone = Column(String, unique=True, index=True)
 
+# Pydantic models
 class PersonCreate(BaseModel):
     nom: str
     prenom: str

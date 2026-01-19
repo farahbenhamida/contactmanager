@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/person.dart';
 import '../services/api_service.dart';
 import 'add_person_screen.dart';
@@ -164,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : '?'),
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.message, color: Colors.green),
+                            icon: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
                             onPressed: () => _launchWhatsApp(person.telephone),
                           ),
                         ),

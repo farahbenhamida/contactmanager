@@ -3,14 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from database import engine, get_db
-from models import Base, Person, PersonCreate, PersonResponse
+from models import Base, Person
+from models import PersonCreate, PersonResponse
 
-# Créer les tables
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Contact API")
 
-# CORS pour Flutter
+# CORS for Flutter
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,7 +22,7 @@ app.add_middleware(
 
 @app.post("/personnes", response_model=PersonResponse)
 def create_person(person: PersonCreate, db: Session = Depends(get_db)):
-    # Vérifier si le téléphone existe déjà
+    # Check if phone already exists
     db_person = db.query(Person).filter(Person.telephone == person.telephone).first()
     if db_person:
         raise HTTPException(status_code=400, detail="Ce numéro de téléphone existe déjà")
@@ -53,6 +54,7 @@ def delete_person(person_id: int, db: Session = Depends(get_db)):
     person = db.query(Person).filter(Person.id == person_id).first()
     if person is None:
         raise HTTPException(status_code=404, detail="Personne non trouvée")
+    
     db.delete(person)
     db.commit()
     return {"message": "Personne supprimée avec succès"}

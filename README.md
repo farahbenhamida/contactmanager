@@ -1,74 +1,92 @@
-# Contact Manager App
+# Contact Manager Application
 
-Une application mobile de gestion de contacts développée avec Flutter et FastAPI.
+Une application de gestion de contacts avec backend FastAPI et frontend Flutter mobile.
 
-## Architecture
+## Structure du Projet
 
-Le projet est divisé en deux parties principales :
-- `backend/` : API REST développée avec FastAPI et SQLite.
-- `mobile/` : Application mobile développée avec Flutter.
-
-### Choix Techniques
-
-- **Backend** : FastAPI pour sa rapidité et sa facilité de création d'APIs REST. SQLAlchemy pour l'ORM et la gestion de la base de données SQLite.
-- **Mobile** : Flutter pour le développement cross-platform. Utilisation du package `http` pour la communication avec le backend.
-- **Base de données** : SQLite pour la simplicité et la persistance locale (côté serveur).
-
-## Prérequis
-
-- Python 3.9+
-- Flutter SDK
-- Android Emulator / iOS Simulator
-
-## Instructions d'Installation et d'Exécution
-
-### 1. Backend
-
-1. Naviguez dans le dossier `backend` :
-   ```bash
-   cd backend
-   ```
-
-2. Créez un environnement virtuel (optionnel mais recommandé) :
-   ```bash
-   python -m venv venv
-   # Windows
-   .\venv\Scripts\activate
-   # Linux/Mac
-   source venv/bin/activate
-   ```
-
-3. Installez les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Lancez le serveur :
-   ```bash
-   python main.py
-   ```
-   Le serveur sera accessible à l'adresse `http://localhost:8000`.
-   La documentation de l'API est disponible sur `http://localhost:8000/docs`.
-
-### 2. Application Mobile
-
-1. Naviguez dans le dossier `mobile` :
-   ```bash
-   cd mobile
-   ```
-
-2. Récupérez les dépendances :
-   ```bash
-   flutter pub get
-   ```
-
-3. Lancez l'application (assurez-vous qu'un émulateur est lancé) :
-   ```bash
-   flutter run
-   ```
+```
+contact_manager1/
+├── backend/              # Backend FastAPI
+│   ├── main.py          # Point d'entrée API
+│   ├── models.py        # Modèles SQLAlchemy et Pydantic
+│   ├── database.py      # Configuration base de données
+│   ├── requirements.txt # Dépendances Python
+│   └── contacts.db      # Base de données SQLite
+├── mobile/              # Application Flutter
+│   ├── lib/
+│   │   ├── main.dart
+│   │   ├── models/
+│   │   │   └── person.dart
+│   │   ├── services/
+│   │   │   └── api_service.dart
+│   │   └── screens/
+│   │       ├── home_screen.dart
+│   │       └── add_person_screen.dart
+│   └── pubspec.yaml
+└── legacy_source/       # Code legacy préservé
+```
 
 ## Fonctionnalités
 
-- **Lister les contacts** : Affichage de tous les contacts enregistrés.
-- **Ajouter un contact** : Formulaire pour ajouter un nom, prénom et téléphone.
-- **Supprimer un contact** : Glisser un contact vers la gauche pour le supprimer.
+### Backend (FastAPI)
+- ✅ **POST /personnes** - Ajouter un contact
+- ✅ **GET /personnes** - Lister tous les contacts
+- ✅ **GET /personnes/{id}** - Récupérer un contact par ID
+- ✅ **DELETE /personnes/{id}** - Supprimer un contact
+- ✅ Validation des données (unicité du téléphone)
+- ✅ CORS configuré pour Flutter
+- ✅ Base de données SQLite
+
+### Mobile (Flutter)
+- ✅ Liste des contacts avec swipe-to-delete
+- ✅ Ajout de contacts avec validation
+- ✅ **Fonctionnalité WhatsApp** - Bouton pour envoyer un message WhatsApp
+- ✅ Gestion des erreurs
+- ✅ Interface Material Design
+
+## Installation et Exécution
+
+### Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+
+Le serveur démarre sur `http://0.0.0.0:8000`
+Documentation API disponible sur `http://localhost:8000/docs`
+
+### Mobile
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+**Note**: L'application utilise `http://10.0.2.2:8000` pour l'émulateur Android.
+
+## Vérification
+
+### Backend
+```bash
+# Test de compilation Python
+python -m py_compile backend/main.py backend/models.py backend/database.py
+```
+
+### Mobile
+```bash
+cd mobile
+flutter analyze  # Aucune erreur trouvée ✓
+```
+
+## Fonctionnalité WhatsApp
+
+Chaque contact dans la liste possède un bouton de message (icône verte) qui ouvre WhatsApp avec le numéro de téléphone pré-rempli. Cette fonctionnalité utilise le package `url_launcher`.
+
+## Technologies Utilisées
+
+- **Backend**: FastAPI, SQLAlchemy, Pydantic, Uvicorn
+- **Mobile**: Flutter, Dart, http, url_launcher
+- **Base de données**: SQLite
